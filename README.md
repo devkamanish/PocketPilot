@@ -59,4 +59,3 @@ Cross-platform personal finance app with:
 - `types/`
 
 
-password Db : Gotohell@;1234566

@@ -9,6 +9,7 @@ import { useFinanceStore } from "../../store/financeStore";
 import { ExpenseCategory } from "../../types/models";
 import { cn } from "../../utils/styles";
 import { categorySpendMap } from "../../utils/calculations";
+import { getAllCategories } from "../../utils/categories";
 
 const showAlert = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -24,9 +25,7 @@ export const AddExpenseScreen = ({ navigation }: { navigation: any }) => {
   const financeError = useFinanceStore((s) => s.error);
   const budgets = useFinanceStore((s) => s.budgets);
 
-  const baseCategories = ["food", "shopping", "other"];
-  const dynamicCategories = budgets.map((b) => b.category);
-  const CATEGORIES = Array.from(new Set([...baseCategories, ...dynamicCategories]));
+  const CATEGORIES = getAllCategories(budgets);
 
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<ExpenseCategory | string>("food");

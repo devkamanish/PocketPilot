@@ -10,7 +10,7 @@ export const useBoot = () => {
 
   useEffect(() => {
     initialize().catch(console.warn);
-    notificationService.registerForPushPermissions().catch(console.warn);
+    notificationService.requestPermissions().catch(console.warn);
   }, [initialize]);
 
   useEffect(() => {

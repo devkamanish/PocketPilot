@@ -21,4 +21,10 @@ export const subscriptionService = {
     if (error) throw error;
     return data as Subscription;
   },
+
+  async deleteSubscription(id: string) {
+    const { error } = await supabase.from("subscriptions").delete().eq("id", id);
+    if (error) throw error;
+  },
 };
+

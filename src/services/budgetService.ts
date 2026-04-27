@@ -37,4 +37,9 @@ export const budgetService = {
       limit: Number((data as any).limit ?? (data as any).spending_limit ?? 0),
     } as Budget;
   },
+
+  async deleteBudget(id: string) {
+    const { error } = await supabase.from("budgets").delete().eq("id", id);
+    if (error) throw error;
+  },
 };

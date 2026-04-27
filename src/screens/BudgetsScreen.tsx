@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Text, View, ScrollView } from "react-native";
+import { Text, View, ScrollView, Alert, TouchableOpacity, Platform } from "react-native";
 import { Card } from "../components/Card";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { Button } from "../components/Button";
@@ -48,6 +48,7 @@ export const BudgetsScreen = () => {
   const budgets = useFinanceStore((s) => s.budgets);
   const expenses = useFinanceStore((s) => s.expenses);
   const upsertBudget = useFinanceStore((s) => s.upsertBudget);
+  const deleteBudget = useFinanceStore((s) => s.deleteBudget);
 
   const [category, setCategory] = useState("");
   const [limit, setLimit] = useState("");
@@ -119,9 +120,40 @@ export const BudgetsScreen = () => {
                 </View>
                 <Text className="text-lg font-bold text-gray-900 capitalize">{b.category}</Text>
               </View>
-              <Text className="text-base font-bold text-primary-600">
-                ₹{(b.limit - spent > 0 ? b.limit - spent : 0).toFixed(0)} <Text className="text-sm font-normal text-gray-400">left</Text>
-              </Text>
+              <View className="flex-row items-center">
+                <Text className="text-base font-bold text-primary-600 mr-3">
+                  ₹{(b.limit - spent > 0 ? b.limit - spent : 0).toFixed(0)} <Text className="text-sm font-normal text-gray-400">left</Text>
+                </Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    const performDelete = async () => {
+                      setLoading(true);
+                      try {
+                        await deleteBudget(b.id);
+                      } finally {
+                        setLoading(false);
+                      }
+                    };
+                    if (Platform.OS === 'web') {
+                      if (window.confirm("Are you sure you want to delete this budget?")) {
+                        performDelete();
+                      }
+                    } else {
+                      Alert.alert(
+                        "Delete Budget",
+                        `Are you sure you want to delete the ${b.category} budget?`,
+                        [
+                          { text: "Cancel", style: "cancel" },
+                          { text: "Delete", style: "destructive", onPress: performDelete }
+                        ]
+                      );
+                    }
+                  }}
+                  className="bg-red-50 p-1.5 rounded-full"
+                >
+                  <Text className="text-red-500 text-xs font-bold px-1">X</Text>
+                </TouchableOpacity>
+              </View>
             </View>
             <ProgressBar spent={spent} limit={b.limit} />
           </Card>

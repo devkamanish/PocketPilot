@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import Toast from "react-native-toast-message";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
       <StatusBar style="dark" />
       <RootNavigator />
       <Toast />
+      <Analytics />
     </SafeAreaProvider>
   );
 }

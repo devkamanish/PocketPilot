@@ -44,6 +44,6 @@ describe("financial calculations", () => {
 
   it("returns warning insights", () => {
     const insights = generateInsights(expenses, budgets, { income: 1500, savingsGoal: 25 });
-    expect(insights.some((i) => i.id === "high-food-spending")).toBeTruthy();
+    expect(insights.some((i) => i.id === "budget-exceeded-food")).toBeTruthy();
   });
 });

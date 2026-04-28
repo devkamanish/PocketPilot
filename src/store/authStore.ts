@@ -33,11 +33,21 @@ export const useAuthStore = create<AuthState>((set) => ({
       return;
     }
     try {
-      const { data } = await supabase.auth.getSession();
+      // Timeout guard: if Supabase never responds (bad network / wrong URL),
+      // we still mark initialized so the splash screen doesn't hang forever.
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Auth initialisation timed out.")), 10_000)
+      );
+
+      const { data } = await Promise.race([
+        supabase.auth.getSession(),
+        timeout,
+      ]);
+
       if (data.session) {
         const { error: userError } = await supabase.auth.getUser();
         if (userError) {
-          // Clear stale/broken session tokens to stop repeated 403 loops.
+          // Clear stale / broken session tokens to stop repeated 403 loops.
           await supabase.auth.signOut();
           set({ session: null, initialized: true, error: "Session expired. Please login again." });
           return;

@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Text, View, Platform, TouchableOpacity } from "react-native";
-import { Card } from "../components/Card";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { useFinanceStore } from "../store/financeStore";
 import { generateInsights } from "../utils/calculations";

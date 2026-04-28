@@ -41,6 +41,7 @@ export type UserProfile = {
   income: number;
   savingsGoal: number;
   categoryAllocations?: Record<string, number>;
+  avatarUrl?: string;
 };
 
 export type Insight = {

@@ -9,6 +9,7 @@ import { useFinanceStore } from "../store/financeStore";
 
 export const ProfileScreen = ({ navigation }: { navigation?: any }) => {
   const logout = useAuthStore((s) => s.logout);
+  const session = useAuthStore((s) => s.session);
   const profile = useFinanceStore((s) => s.profile);
   const setProfile = useFinanceStore((s) => s.setProfile);
   
@@ -40,6 +41,18 @@ export const ProfileScreen = ({ navigation }: { navigation?: any }) => {
         </View>
       }
     >
+
+      <View className="items-center mb-6">
+        <View className="w-24 h-24 bg-indigo-100 rounded-full items-center justify-center border-4 border-white shadow-lg">
+          <Text className="text-4xl font-bold text-indigo-600">
+            {session?.user?.email?.charAt(0).toUpperCase() || '👤'}
+          </Text>
+        </View>
+        
+        <Text className="mt-3 text-lg font-semibold text-gray-900">
+          {session?.user?.email || 'User'}
+        </Text>
+      </View>
 
       <Card title="Financial Profile" className="mb-4">
         <Input

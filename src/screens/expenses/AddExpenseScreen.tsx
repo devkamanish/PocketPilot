@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Text, View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { Alert, Text, View, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import Toast from "react-native-toast-message";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { Button } from "../../components/Button";

@@ -33,7 +33,7 @@ export const ForgotPasswordScreen = ({ navigation }: { navigation: any }) => {
           </View>
           <Text className="text-3xl font-extrabold text-gray-900 tracking-tight text-center">Reset Password</Text>
           <Text className="text-base text-gray-500 mt-2 text-center text-balance">
-            Enter your email and we'll send you a link to reset your password
+            Enter your email and we&apos;ll send you a link to reset your password
           </Text>
         </View>
 

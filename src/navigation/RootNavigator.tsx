@@ -52,6 +52,7 @@ const MainTabs = () => (
         else if (route.name === "Subscriptions") icon = "🔁";
         else if (route.name === "Insights") icon = "✨";
         else if (route.name === "Menu") icon = "≡";
+        else if (route.name === "Profile") icon = "👤";
 
         return (
           <View style={{ opacity: focused ? 1 : 0.6, transform: [{ scale: focused ? 1.1 : 1 }] }}>

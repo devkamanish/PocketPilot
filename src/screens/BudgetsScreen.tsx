@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Text, View, ScrollView, Alert, TouchableOpacity, Platform } from "react-native";
+import { Text, View, Alert, TouchableOpacity, Platform } from "react-native";
 import { Card } from "../components/Card";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { Button } from "../components/Button";
@@ -162,7 +162,7 @@ export const BudgetsScreen = () => {
       
       {budgets.length === 0 ? (
         <View className="items-center justify-center py-10">
-          <Text className="text-gray-400 text-center px-4">You haven't set any budgets yet. Add one above to start tracking your limits.</Text>
+          <Text className="text-gray-400 text-center px-4">You haven&apos;t set any budgets yet. Add one above to start tracking your limits.</Text>
         </View>
       ) : null}
       

@@ -2,6 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { generateInsights } from "../utils/calculations";
 import { useBoot } from "../hooks/useBoot";
@@ -24,7 +25,14 @@ import { View, Text, Platform } from "react-native";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-const MainTabs = () => (
+const MainTabs = () => {
+  const insets = useSafeAreaInsets();
+  // We use Math.max(insets.bottom, 10) to ensure there's at least some padding,
+  // but for three-button navigation, insets.bottom will give us the necessary space.
+  const paddingBottom = Platform.OS === 'android' ? Math.max(insets.bottom, 10) : insets.bottom;
+  const tabHeight = 60 + paddingBottom;
+
+  return (
   <Tab.Navigator 
     screenOptions={({ route }) => ({ 
       headerShown: false,
@@ -34,9 +42,10 @@ const MainTabs = () => (
         backgroundColor: '#ffffff',
         borderTopWidth: 1,
         borderTopColor: '#f3f4f6',
-        paddingVertical: 5,
+        paddingTop: 5,
+        paddingBottom: paddingBottom,
         elevation: 0,
-        height: 60,
+        height: tabHeight,
       },
       tabBarLabelStyle: {
         fontSize: 10,
@@ -76,7 +85,8 @@ const MainTabs = () => (
       <Tab.Screen name="Menu" component={MenuScreen} />
     )}
   </Tab.Navigator>
-);
+  );
+};
 
 export const RootNavigator = () => {
   useBoot();

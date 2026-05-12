@@ -8,6 +8,7 @@ import { useAuthStore } from "../store/authStore";
 import { useFinanceStore } from "../store/financeStore";
 import { ExpenseCategory } from "../types/models";
 import { categorySpendMap } from "../utils/calculations";
+import { filterCurrentMonthExpenses } from "../utils/dateFilters";
 import { cn } from "../utils/styles";
 
 const ProgressBar = ({ spent, limit }: { spent: number; limit: number }) => {
@@ -68,7 +69,7 @@ export const BudgetsScreen = () => {
     setLoading(false);
   };
 
-  const spends = useMemo(() => categorySpendMap(expenses), [expenses]);
+  const spends = useMemo(() => categorySpendMap(filterCurrentMonthExpenses(expenses)), [expenses]);
 
   return (
     <ScreenContainer

@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Text, View, Platform, Dimensions } from "react-native";
+import { useMemo, useState, useCallback } from "react";
+import { Text, View, Platform, Dimensions, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Bar, CartesianChart } from "victory-native";
 import { useFont } from "@shopify/react-native-skia";
 import { Card } from "../components/Card";
@@ -13,6 +13,13 @@ import {
   sumExpenses,
 } from "../utils/calculations";
 import { getAllCategories } from "../utils/categories";
+import {
+  filterExpensesByMonth,
+  getAvailableMonths,
+  getMonthLabel,
+} from "../utils/dateFilters";
+import { exportMonthlyPDF } from "../utils/pdfExport";
+import Svg, { Path, Rect } from "react-native-svg";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -26,6 +33,27 @@ const BAR_COLORS = [
   "#f97316", // orange
   "#ec4899", // pink
 ];
+
+// ─── Download Icon (SVG) ───────────────────────────────────────────────────────
+const DownloadIcon = ({ color = "#3b82f6", size = 18 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M12 3v12m0 0l-4-4m4 4l4-4" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
+// ─── Chevron Icons ─────────────────────────────────────────────────────────────
+const ChevronLeft = ({ color = "#6b7280", size = 16 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M15 18l-6-6 6-6" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
+const ChevronRight = ({ color = "#6b7280", size = 16 }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M9 18l6-6-6-6" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
 
 // ─── Metric Card ───────────────────────────────────────────────────────────────
 const MetricCard = ({
@@ -125,13 +153,54 @@ export const DashboardScreen = () => {
   const profile = useFinanceStore((s) => s.profile);
   const budgets = useFinanceStore((s) => s.budgets);
 
-  const totalSpend = sumExpenses(expenses);
+  // ── Month selector state ──
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  // Available months for navigation bounds
+  const availableMonths = useMemo(() => getAvailableMonths(expenses), [expenses]);
+
+  // Check if we can navigate forward/backward
+  const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonth === now.getMonth();
+
+  const goToPreviousMonth = useCallback(() => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedYear((y) => y - 1);
+    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+  }, [selectedMonth]);
+
+  const goToNextMonth = useCallback(() => {
+    if (isCurrentMonth) return; // Don't go beyond current month
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedYear((y) => y + 1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  }, [selectedMonth, isCurrentMonth]);
+
+  // ── Filtered expenses for selected month ──
+  const monthlyExpenses = useMemo(
+    () => filterExpensesByMonth(expenses, selectedYear, selectedMonth),
+    [expenses, selectedYear, selectedMonth]
+  );
+
+  const totalSpend = sumExpenses(monthlyExpenses);
+  const daysInSelectedMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+  const daysElapsed = isCurrentMonth
+    ? Math.max(now.getDate(), 1)
+    : daysInSelectedMonth; // For past months, use all days
   const ratio = savingsRatio(profile.income, totalSpend);
   const burden = subscriptionBurden(subscriptions, profile.income);
-  const burn = burnRate(expenses, Math.max(new Date().getDate(), 1));
+  const burn = burnRate(monthlyExpenses, daysElapsed);
 
   const allCategories = useMemo(() => getAllCategories(budgets), [budgets]);
-  const spendMap = useMemo(() => categorySpendMap(expenses), [expenses]);
+  const spendMap = useMemo(() => categorySpendMap(monthlyExpenses), [monthlyExpenses]);
 
   const categoryData = useMemo(
     () => allCategories.map((category) => ({ category, amount: Number(spendMap[category] || 0) })),
@@ -140,6 +209,20 @@ export const DashboardScreen = () => {
 
   const spentCategories = categoryData.filter((d) => d.amount > 0);
   const ratioColor = ratio >= (profile.savingsGoal ?? 20) ? "#10b981" : "#ef4444";
+
+  const monthLabel = getMonthLabel(selectedYear, selectedMonth);
+
+  // ── PDF Export ──
+  const handleExportPDF = useCallback(async () => {
+    setPdfLoading(true);
+    try {
+      await exportMonthlyPDF(monthlyExpenses, selectedYear, selectedMonth, profile.income, profile.savingsGoal ?? 20);
+    } catch (e) {
+      console.warn("PDF export failed:", e);
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [monthlyExpenses, selectedYear, selectedMonth, profile.income, profile.savingsGoal]);
 
   return (
     <ScreenContainer
@@ -150,9 +233,70 @@ export const DashboardScreen = () => {
         </View>
       }
     >
+      {/* Month Selector */}
+      <View className="flex-row items-center justify-between bg-white rounded-2xl px-3 py-2.5 mb-3 border border-gray-100 shadow-sm">
+        <TouchableOpacity
+          onPress={goToPreviousMonth}
+          style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}
+          activeOpacity={0.7}
+        >
+          <ChevronLeft color="#374151" size={16} />
+        </TouchableOpacity>
+
+        <View style={{ alignItems: 'center', flex: 1 }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111827' }}>
+            {monthLabel}
+          </Text>
+          {isCurrentMonth && (
+            <Text style={{ fontSize: 10, color: '#3b82f6', fontWeight: '600', marginTop: 1 }}>
+              Current Month
+            </Text>
+          )}
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {/* PDF Download Button */}
+          <TouchableOpacity
+            onPress={handleExportPDF}
+            disabled={pdfLoading || monthlyExpenses.length === 0}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: monthlyExpenses.length > 0 ? '#eff6ff' : '#f9fafb',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            activeOpacity={0.7}
+          >
+            {pdfLoading ? (
+              <ActivityIndicator size="small" color="#3b82f6" />
+            ) : (
+              <DownloadIcon color={monthlyExpenses.length > 0 ? "#3b82f6" : "#d1d5db"} size={16} />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={goToNextMonth}
+            disabled={isCurrentMonth}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: isCurrentMonth ? '#f9fafb' : '#f3f4f6',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            activeOpacity={0.7}
+          >
+            <ChevronRight color={isCurrentMonth ? "#d1d5db" : "#374151"} size={16} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Metric Cards */}
       <View className="flex-row flex-wrap justify-between mb-2">
-        <MetricCard title="Total Spend" value={`₹${totalSpend.toFixed(0)}`} subtitle="This month" />
+        <MetricCard title="Total Spend" value={`₹${totalSpend.toFixed(0)}`} subtitle={isCurrentMonth ? "This month" : monthLabel} />
         <MetricCard title="Daily Burn" value={`₹${burn.toFixed(0)}`} subtitle="Per day" />
         <MetricCard
           title="Savings"

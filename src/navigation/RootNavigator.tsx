@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { generateInsights } from "../utils/calculations";
+import { filterCurrentMonthExpenses } from "../utils/dateFilters";
 import { useBoot } from "../hooks/useBoot";
 import { DashboardScreen } from "../screens/DashboardScreen";
 import { AddExpenseScreen } from "../screens/expenses/AddExpenseScreen";
@@ -20,10 +21,31 @@ import { RegisterScreen } from "../screens/auth/RegisterScreen";
 import { SplashScreen } from "../screens/auth/SplashScreen";
 import { useAuthStore } from "../store/authStore";
 import { useFinanceStore } from "../store/financeStore";
+import {
+  DashboardIcon,
+  HistoryIcon,
+  AddIcon,
+  BudgetIcon,
+  MenuIcon as MenuTabIcon,
+  SubscriptionsIcon,
+  InsightsIcon,
+  ProfileIcon,
+} from "../components/TabIcons";
 import { View, Text, Platform } from "react-native";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+const TAB_ICON_MAP: Record<string, React.FC<{ color: string; size?: number; focused?: boolean }>> = {
+  Dashboard: DashboardIcon,
+  Transactions: HistoryIcon,
+  AddExpense: AddIcon,
+  Budgets: BudgetIcon,
+  Menu: MenuTabIcon,
+  Subscriptions: SubscriptionsIcon,
+  Insights: InsightsIcon,
+  Profile: ProfileIcon,
+};
 
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
@@ -53,19 +75,10 @@ const MainTabs = () => {
         marginBottom: 5,
       },
       tabBarIcon: ({ color, focused }) => {
-        let icon = "•";
-        if (route.name === "Dashboard") icon = "📊";
-        else if (route.name === "Transactions") icon = "📄";
-        else if (route.name === "AddExpense") icon = "➕";
-        else if (route.name === "Budgets") icon = "🎯";
-        else if (route.name === "Subscriptions") icon = "🔁";
-        else if (route.name === "Insights") icon = "✨";
-        else if (route.name === "Menu") icon = "≡";
-        else if (route.name === "Profile") icon = "👤";
-
+        const IconComponent = TAB_ICON_MAP[route.name];
         return (
-          <View style={{ opacity: focused ? 1 : 0.6, transform: [{ scale: focused ? 1.1 : 1 }] }}>
-            <Text style={{ fontSize: 20, color }}>{icon}</Text>
+          <View style={{ opacity: focused ? 1 : 0.7, transform: [{ scale: focused ? 1.1 : 1 }] }}>
+            {IconComponent ? <IconComponent color={color} size={22} focused={focused} /> : <Text style={{ fontSize: 20, color }}>•</Text>}
           </View>
         );
       }
@@ -105,7 +118,8 @@ export const RootNavigator = () => {
 
   useEffect(() => {
     if (!session?.user.id || expenses.length === 0) return;
-    const insights = generateInsights(expenses, budgets, profile);
+    const monthlyExpenses = filterCurrentMonthExpenses(expenses);
+    const insights = generateInsights(monthlyExpenses, budgets, profile);
     const newSeen = new Set(seenInsights);
     let hasNew = false;
     

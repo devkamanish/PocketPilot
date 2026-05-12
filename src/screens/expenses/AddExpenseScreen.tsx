@@ -9,6 +9,7 @@ import { useFinanceStore } from "../../store/financeStore";
 import { ExpenseCategory } from "../../types/models";
 import { cn } from "../../utils/styles";
 import { categorySpendMap } from "../../utils/calculations";
+import { filterCurrentMonthExpenses } from "../../utils/dateFilters";
 import { getAllCategories } from "../../utils/categories";
 
 const showAlert = (title: string, message: string) => {
@@ -70,7 +71,7 @@ export const AddExpenseScreen = ({ navigation }: { navigation: any }) => {
     const budget = budgets.find((b) => b.category === category);
     
     if (budget) {
-      const spends = categorySpendMap(state.expenses);
+      const spends = categorySpendMap(filterCurrentMonthExpenses(state.expenses));
       const spent = spends[category as string] || 0;
       if (spent + parsed > budget.limit) {
         const overflow = (spent + parsed) - budget.limit;

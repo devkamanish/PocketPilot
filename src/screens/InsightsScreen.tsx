@@ -3,6 +3,7 @@ import { Text, View, Platform, TouchableOpacity } from "react-native";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { useFinanceStore } from "../store/financeStore";
 import { generateInsights } from "../utils/calculations";
+import { filterCurrentMonthExpenses } from "../utils/dateFilters";
 import { cn } from "../utils/styles";
 
 const InsightCard = ({ severity, message }: { severity: string, message: string }) => {
@@ -40,7 +41,7 @@ export const InsightsScreen = ({ navigation }: { navigation?: any }) => {
   const error = useFinanceStore((s) => s.error);
   
   const insights = useMemo(
-    () => generateInsights(expenses, budgets, profile),
+    () => generateInsights(filterCurrentMonthExpenses(expenses), budgets, profile),
     [expenses, budgets, profile]
   );
 

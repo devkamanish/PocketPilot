@@ -101,8 +101,8 @@ Live Demo:[https://pocket-pilot-two.vercel.app/
 ](https://pocket-pilot-two.vercel.app/)
 ### Mobile Download
 Latest APK:
-[https://github.com/devkamanish/PocketPilot/releases/tag/v1.1.0
-](https://github.com/devkamanish/PocketPilot/releases/tag/v1.1.0)---
+[https://github.com/devkamanish/PocketPilot/releases/tag/v1.2.0
+](https://github.com/devkamanish/PocketPilot/releases/tag/v1.2.0)---
 
 ## Screenshots
 <img width="358" height="715" alt="image" src="https://github.com/user-attachments/assets/5391b645-8a02-46d8-9f58-212cb4b4b16a" />

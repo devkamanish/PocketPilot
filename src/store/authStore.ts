@@ -47,10 +47,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (data.session) {
         const { error: userError } = await supabase.auth.getUser();
         if (userError) {
-          // Clear stale / broken session tokens to stop repeated 403 loops.
-          await supabase.auth.signOut();
-          set({ session: null, initialized: true, error: "Session expired. Please login again." });
-          return;
+          // Only sign out if we get an actual HTTP Auth Error (e.g. 401/403) from the server.
+          // Network errors (like being offline) will not have a 4xx status.
+          if (userError.status && userError.status >= 400 && userError.status < 500) {
+            await supabase.auth.signOut();
+            set({ session: null, initialized: true, error: "Session expired. Please login again." });
+            return;
+          } else {
+            console.warn("Could not verify session with server, assuming offline mode:", userError.message);
+          }
         }
       }
       set({ session: data.session, initialized: true, error: null });

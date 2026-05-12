@@ -97,7 +97,7 @@ Supabase Backend
 ## Demo
 
 ### Web Preview
-Live Demo:[ https://your-vercel-link.vercel.app
+Live Demo:[https://pocket-pilot-two.vercel.app/
 ](https://pocket-pilot-two.vercel.app/)
 ### Mobile Download
 Latest APK:
@@ -125,7 +125,7 @@ Latest APK:
 ## Installation
 Clone repository
 ```bash
-git clone https://github.com/yourusername/pocketpilot.git
+git clone https://github.com/devkamanish/pocketpilot.git
 cd pocketpilot
 ```
 
